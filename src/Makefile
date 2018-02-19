@@ -373,8 +373,8 @@ endif
       ifeq (,$(CROSS_PKGCONFIG))
       COPT += -D__no_pnglib__
       else
-      COPT += $(shell PKG_CONFIG_PATH=$(CROSS_PKG_CONFIG_PATH) $(CROSS_PKGCONFIG) --cflags libpng || echo "-D__no_pnglib__" )
-      LOPT += $(shell PKG_CONFIG_PATH=$(CROSS_PKG_CONFIG_PATH) $(CROSS_PKGCONFIG) --libs libpng)
+      COPT += $(shell PKG_CONFIG_LIBDIR=$(CROSS_PKG_CONFIG_PATH) $(CROSS_PKGCONFIG) --cflags libpng || echo "-D__no_pnglib__" )
+      LOPT += $(shell PKG_CONFIG_LIBDIR=$(CROSS_PKG_CONFIG_PATH) $(CROSS_PKGCONFIG) --libs libpng)
       endif
       OBJDIR = ../obj/win32
       PLATFORM = win32
