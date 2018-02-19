@@ -373,8 +373,8 @@ endif
       ifeq (,$(CROSS_PKGCONFIG))
       COPT += -D__no_pnglib__
       else
-      COPT += $(shell PKG_CONFIG_PATH=/usr/local/cross-tools/i386-mingw32/lib/pkgconfig $(CROSS_PKGCONFIG) --cflags libpng)
-      LOPT += $(shell PKG_CONFIG_PATH=/usr/local/cross-tools/i386-mingw32/lib/pkgconfig $(CROSS_PKGCONGIF) --libs libpng)
+      COPT += $(shell PKG_CONFIG_PATH=$(CROSS_PKG_CONFIG_PATH) $(CROSS_PKGCONFIG) --cflags libpng)
+      LOPT += $(shell PKG_CONFIG_PATH=$(CROSS_PKG_CONFIG_PATH) $(CROSS_PKGCONFIG) --libs libpng)
       endif
       OBJDIR = ../obj/win32
       PLATFORM = win32
