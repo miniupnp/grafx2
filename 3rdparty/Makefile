@@ -29,7 +29,7 @@ PREFIX = $(PWD)/usr
 
 MKDIR = mkdir -p
 TAR = $(shell which tar)
-GETURL = $(shell which wget || echo "curl -O")
+GETURL = $(shell which wget || echo "curl -O -L")
 
 BUILD_CC := $(CC)
 
