@@ -35,7 +35,7 @@ script:
 before_deploy:
 - git config --local user.name "Thomas Bernard"
 - git config --local user.email "miniupnp@free.fr"
-- git tag "$(git rev-parse --abbrev-ref HEAD)-$(git log --format=%h -1)"
+- git tag "$(git rev-parse --abbrev-ref HEAD)-$(git log --format=%h -1)" || git checkout "$(git rev-parse --abbrev-ref HEAD)-$(git log --format=%h -1)"
 deploy:
   provider: releases
   api_key:
