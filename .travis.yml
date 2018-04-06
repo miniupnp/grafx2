@@ -44,6 +44,7 @@ deploy:
   file:
    - "*.tar.gz"
    - "*.zip"
+  skip_cleanup: true
   on:
     repo: miniupnp/grafx2
     branch: travis-ci
