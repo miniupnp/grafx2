@@ -42,7 +42,7 @@ deploy:
     secure: mSOlAr/jljyD6oGjwXcZ8pIzlwiHy/uIvcd3IaYh7Wvj0ZH189pAwFdOykNHYmpjlZqGvYQur366ooVoEGyeLtENlQzzFa1nje0xLi+UAYQtZZ4uUvYDks7/gqoPYBcQkgkiu/lNJvEtqXEa3+nu/RjK4aCDXLRN4vtg8pUamx155hNWSAHcZn/RRqn3y5yDpC/zv67tM6jxgy2b5cjlHX5+Pg1snMXU4+S/wv6R9El1QYSgSKBFAW5PyM8dwg7eTf8Jr1P99fHd9kUi3ZnDjtmMU+OQICuZXkAK4zFe8w7xsQb7tI5/caVIK4wyAwZvS1KmT3N6MZKkv/OD89HYWj4ARLj8R1VKVPb0Zz4YDfleT0OoTX8rlc0i0m8i3E2/wTGBeGaUpKuO2DFaDFzvcKcp1B51RYhaDQR7XmUaHCHMGE/nLQ9IucZn3x9Qs3foPFFUZy/q/qp8DHMJSHUyAA2D3IrJloxV/6ToMEFFrkA8LOAajkKPz9mnwWtzM0/8qUUKg7mxfwBnuXlw0qajzLteM2ECy28bdTu0PAwXQYY3M1BxZJhv57XatCpixpJtBCyTsQyHBMtbvteJLlJ8zsRSp2R4JxGNlyXV3agNOZUvj4CUGbR1rN8wQYX1W8XNoAmuWgeqAtxfBOagLuLvbyl9fARld1PIsY5mYCXdnBY=
   file_glob: true
   file:
-   - "*.tar.gz"
+   - "*.tgz"
    - "*.zip"
   skip_cleanup: true
   on:
