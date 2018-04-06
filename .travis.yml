@@ -1,9 +1,7 @@
 language: c
-
 os:
-  - linux
-  - osx
-
+- linux
+- osx
 addons:
   apt:
     packages:
@@ -13,31 +11,35 @@ addons:
     - libsdl-image1.2-dev
     - libsdl-ttf2.0-dev
     - liblua5.2-dev
-
 sudo: false
-
 env:
-  - ''
-  - 'WIN32CROSS=1'
-
+- ''
+- WIN32CROSS=1
 matrix:
   exclude:
-    - os: osx
-      env: 'WIN32CROSS=1'
-
+  - os: osx
+    env: WIN32CROSS=1
 compiler:
-  - gcc
-
+- gcc
 before_install:
-  - 'if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update > /dev/null ; fi'
-  - 'if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install sdl sdl_image sdl_ttf lua ; fi'
-
-# to avoid errors with  git rev-list --count 1af8c74f53110e349d8f0d19b14599281913f71f..
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update > /dev/null ; fi
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install sdl sdl_image sdl_ttf lua ;
+  fi
 install:
-  - 'git fetch --unshallow'
-
+- git fetch --unshallow
 script:
-  - 'cd $TRAVIS_BUILD_DIR'
-  - 'if [ "$WIN32CROSS" = "1" ] ; then make 3rdparty ; fi'
-  - 'if [ "$TRAVIS_OS_NAME" = "osx" ] ; then make ; else make -j3 ; fi'
-  - 'make ziprelease'
+- cd $TRAVIS_BUILD_DIR
+- if [ "$WIN32CROSS" = "1" ] ; then make 3rdparty ; fi
+- if [ "$TRAVIS_OS_NAME" = "osx" ] ; then make ; else make -j3 ; fi
+- make ziprelease
+deploy:
+  provider: releases
+  api_key:
+    secure: mSOlAr/jljyD6oGjwXcZ8pIzlwiHy/uIvcd3IaYh7Wvj0ZH189pAwFdOykNHYmpjlZqGvYQur366ooVoEGyeLtENlQzzFa1nje0xLi+UAYQtZZ4uUvYDks7/gqoPYBcQkgkiu/lNJvEtqXEa3+nu/RjK4aCDXLRN4vtg8pUamx155hNWSAHcZn/RRqn3y5yDpC/zv67tM6jxgy2b5cjlHX5+Pg1snMXU4+S/wv6R9El1QYSgSKBFAW5PyM8dwg7eTf8Jr1P99fHd9kUi3ZnDjtmMU+OQICuZXkAK4zFe8w7xsQb7tI5/caVIK4wyAwZvS1KmT3N6MZKkv/OD89HYWj4ARLj8R1VKVPb0Zz4YDfleT0OoTX8rlc0i0m8i3E2/wTGBeGaUpKuO2DFaDFzvcKcp1B51RYhaDQR7XmUaHCHMGE/nLQ9IucZn3x9Qs3foPFFUZy/q/qp8DHMJSHUyAA2D3IrJloxV/6ToMEFFrkA8LOAajkKPz9mnwWtzM0/8qUUKg7mxfwBnuXlw0qajzLteM2ECy28bdTu0PAwXQYY3M1BxZJhv57XatCpixpJtBCyTsQyHBMtbvteJLlJ8zsRSp2R4JxGNlyXV3agNOZUvj4CUGbR1rN8wQYX1W8XNoAmuWgeqAtxfBOagLuLvbyl9fARld1PIsY5mYCXdnBY=
+  file_glob: true
+  file:
+   - "*.tar.gz"
+   - "*.zip"
+  on:
+    repo: miniupnp/grafx2
+    branch: travis-ci
