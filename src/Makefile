@@ -139,28 +139,21 @@ else
     #  8    => 10.4 Tiger   (ppc/i386)
     #  9    => 10.5 Leopard (ppc/i386)
     # 10    => 10.6 Snow Leopard (i386 only)
-    MACHINE = $(shell gcc -dumpmachine)
-    DARWINVER = $(shell gcc -dumpmachine | sed 's/.*darwin\([0-9]*\).*/\1/' )
-    ifeq (greater, $(shell [ $(DARWINVER) -gt 9 ] && echo "greater"))
+    MACHINE = $(shell $(CC) -dumpmachine)
+    DARWINVER = $(shell $(CC) -dumpmachine | sed 's/.*darwin\([0-9]*\).*/\1/' )
+    ifeq (greater,$(shell [ $(DARWINVER) -gt 9 ] && echo "greater"))
     MACOSX_ARCH = -arch x86_64 -arch i386
-    #MACOSX_LION = 1
     else
     ifeq (9, $(DARWINVER))
     MACOSX_ARCH = -arch ppc -arch i386
     else
-    ifneq ( ,$(findstring(powerpc, $(MACHINE))))
+    ifeq (powerpc,$(findstring powerpc, $(MACHINE)))
     MACOSX_ARCH = -arch ppc
     else
     MACOSX_ARCH = -arch i386
     endif
     endif
     endif
-
-ifdef MACOSX_LION
-MACOSX_SYSROOT = /Developer/SDKs/MacOSX10.6.sdk
-else
-MACOSX_SYSROOT = /Developer/SDKs/MacOSX10.4u.sdk
-endif
 
     DELCOMMAND = rm -rf
     MKDIR = mkdir -p
@@ -178,60 +171,70 @@ endif
     FWDIR = /Library/Frameworks
     BIN = ../bin/grafx2
 
-ifeq ($(API),sdl)
-    SDLCONFIG := $(shell which sdl-config)
-ifneq ($(SDLCONFIG), )
-    # these are for use with macports
-    SDLCOPT = $(shell sdl-config --cflags)
-    SDLLOPT = $(shell sdl-config --libs) $(shell pkg-config --libs SDL_image)
-else
-    # these are for use with Mac OS X native frameworks
-    #-framework SDL_ttf 
-    SDLLOPT = -isysroot $(MACOSX_SYSROOT) $(MACOSX_ARCH) -L/usr/lib -framework SDL -framework SDL_image -framework Cocoa -framework Carbon -framework OpenGL
-    SDLCOPT = $(MACOSX_ARCH) -I$(FWDIR)/SDL.framework/Headers -I$(FWDIR)/SDL_image.framework/Headers -I$(FWDIR)/SDL_ttf.framework/Headers -D_THREAD_SAFE
-endif
-endif
-ifeq ($(API),sdl2)
-    SDLCOPT = $(shell sdl2-config --cflags)
-    SDLLOPT = $(shell sdl2-config --libs) $(shell pkg-config --libs SDL2_image)
-    SDLLOPT += -Wl,-framework,Cocoa
-endif
+    # frameworks OFF by default
+    ifndef NOFW
+      NOFW = 1
+    endif
+
+    ifeq (sdl,$(findstring sdl,$(API)))
+      # SDL or SDL2
+      SDLCONFIG := $(shell which $(API)-config)
+      SDLIMAGEPKG = $(subst sdl,SDL,$(API))_image
+      SDLTTFPKG = $(subst sdl,SDL,$(API))_ttf
+      ifeq ($(NOFW),1)
+        SDLCOPT = $(shell $(SDLCONFIG) --cflags)
+        SDLLOPT = $(shell $(SDLCONFIG) --libs) $(shell pkg-config --libs $(SDLIMAGEPKG))
+        ifeq ($(API),sdl2)
+          SDLLOPT += -Wl,-framework,Cocoa
+        endif
+      else
+        # Mac OS X native frameworks
+        SDLCOPT = -F$(FWDIR) -D_THREAD_SAFE
+        SDLCOPT += -I$(FWDIR)/$(subst sdl,SDL,$(API)).framework/Headers
+        SDLCOPT += -I$(FWDIR)/$(SDLIMAGEPKG).framework/Headers
+        SDLCOPT += -I$(FWDIR)/$(SDLTTFPKG).framework/Headers
+        # @rpath is introduced in 10.5 Leopard
+        SDLLOPT = -framework Cocoa -framework $(subst sdl,SDL,$(API))
+        SDLLOPT += -framework $(SDLIMAGEPKG) -rpath @executable_path/../Frameworks
+      endif
+    endif
 
     # these are for use with macports
-    LUAPKG := $(shell for p in lua5.3 lua-5.3 lua53 lua5.2 lua-5.2 lua52 lua5.1 lua-5.1 lua51 lua ; do pkg-config --exists $$p && echo $$p && break ; done)
+    LUAPKG := $(shell for p in lua lua5.3 lua-5.3 lua53 lua5.2 lua-5.2 lua52 lua5.1 lua-5.1 lua51 ; do pkg-config --exists $$p && echo $$p && break ; done)
 ifneq ($(LUAPKG), )
     LUACOPT = $(shell pkg-config $(LUAPKG) --cflags)
     LUALOPT = $(shell pkg-config $(LUAPKG) --libs)
 else
     # these are for use with Mac OS X native frameworks
     LUACOPT = -I$(FWDIR)/Lua.framework/Headers
-ifdef MACOSX_LION
     LUALOPT = -framework lua
-else
-    LUALOPT = -llua 
-endif
 endif
 
     # these are for everyone
-    COPT = -D_DARWIN_C_SOURCE -D__macosx__ -W -Wall -Wdeclaration-after-statement -O$(OPTIM) -std=c99 -g $(LUACOPT) $(SDLCOPT) $(TTFCOPT) -I/usr/include
-ifdef MACOSX_LION
-    LOPT = $(SDLLOPT) $(LUALOPT) -framework libpng14 -lz
-else
+    COPT = $(MACOSX_ARCH) -D_DARWIN_C_SOURCE -D__macosx__ -W -Wall -Wdeclaration-after-statement
+    COPT += -O$(OPTIM) -std=c99 -g $(LUACOPT) $(SDLCOPT) $(TTFCOPT)
     LOPT = $(SDLLOPT) $(LUALOPT)
-    LIBPNGCONFIG := $(shell libpng-config)
-ifneq ($(LIBPNGCONFIG), )
-    COPT += $(shell libpng-config --cflags)
-    LOPT += $(shell libpng-config --ldflags)
-else
-    LOPT += -lpng
-endif
+
+    ifeq ($(SYSPNG),1)
+      # use system PNG
+      LOPT += -lpng
+    else
+      LIBPNGCONFIG := $(shell libpng-config)
+      ifneq ($(LIBPNGCONFIG), )
+        COPT += $(shell libpng-config --cflags)
+        LOPT += $(shell libpng-config --ldflags)
+      else
+        LOPT += -lpng
+      endif
+    endif
     LOPT += -lz
-endif
     COPT += -DENABLE_FILENAMES_ICONV
     LOPT += -liconv
 ifeq ($(API),x11)
     LOPT += -Wl,-framework,CoreFoundation
 endif
+    COPT += $(TTFCOPT)
+    LOPT += $(TTFLOPT)
     # Use gcc for compiling. Use ncc to build a callgraph and analyze the code.
     #CC = nccgen -ncgcc -ncld -ncfabs
     OBJDIR = ../obj/macosx
@@ -240,7 +243,6 @@ ifeq ($(API),sdl)
 endif
     FCLOPT = 
     MACAPPEXE = Grafx2.app/Contents/MacOS/Grafx2
-    NOTTF = 1
   else
   ifeq ($(PLATFORM),AROS) # 3
     #AROS specific
@@ -558,7 +560,7 @@ ifeq ($(NOTTF),1)
   TTFLABEL = -nottf
 else
  ifneq ($(ATARICROSS),1)
-   TTFCOPT = 
+   TTFCOPT =
    TTFLOPT =
    ifneq ($(WIN32CROSS),1)
      TTFLOPT += -L$(PREFIX)/lib
@@ -569,16 +571,16 @@ else
      TTFLOPT += -lSDL2_ttf $(FCLOPT)
    endif
    TTFLIBS = bin/libfreetype-6.dll bin/SDL_ttf.dll
-   TTFLABEL = 
+   TTFLABEL =
  else
-   TTFCOPT = 
+   TTFCOPT =
    ifeq ($(API),sdl)
    TTFLOPT = -L$(PREFIX)/lib -lSDL_ttf $(FCLOPT)
    else
    TTFLOPT = -L$(PREFIX)/lib -lSDL2_ttf $(FCLOPT)
    endif
-   TTFLIBS =  
-   TTFLABEL = 
+   TTFLIBS =
+   TTFLABEL =
  endif
 endif
 

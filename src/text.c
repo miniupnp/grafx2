@@ -32,11 +32,7 @@
 
 // TrueType
 #ifndef NOTTF
-#if defined(__macosx__)
-  #include <SDL_ttf/SDL_ttf.h>
-#else
-  #include <SDL_ttf.h>
-#endif
+#include <SDL_ttf.h>
 
 #if defined(__CAANOO__) || defined(__WIZ__) || defined(__GP2X__)
 // No fontconfig
@@ -358,46 +354,42 @@ void Init_text(void)
     }
     #endif
   #elif defined(__macosx__)
-    // Récupération de la liste des fonts avec fontconfig
     #ifndef NOTTF
-
-
-      int i,number;
+    {
+      int i,number = 3;
       char home_dir[MAXPATHLEN];
-      char *font_path_list[3] = {
+      const char *font_path_list[3] = {
          "/System/Library/Fonts",
          "/Library/Fonts"
       };
-      number = 3;
       // Make sure we also search into the user's fonts directory
-      CFURLRef url = (CFURLRef) CFCopyHomeDirectoryURLForUser(NULL);
-      CFURLGetFileSystemRepresentation(url, true, (UInt8 *) home_dir, MAXPATHLEN);
-      strcat(home_dir, "/Library/Fonts");
+      // CFStringGetCString((CFStringRef)NSHomeDirectory(), home_dir, sizeof(home_dir), kCFStringEncodingUTF8);
+      snprintf(home_dir, sizeof(home_dir), "%s%s", getenv("HOME"), "/Library/Fonts");
       font_path_list[2] = home_dir;
 
       for(i=0;i<number;i++)
-         For_each_file(*(font_path_list+i),Add_font);
-
-      CFRelease(url);
+         For_each_file(font_path_list[i],Add_font);
+    }
     #endif
 
   #elif defined(__CAANOO__) || defined(__WIZ__) || defined(__GP2X__)
   // No fontconfig : Only use fonts from Grafx2
   #elif defined(USE_FC)
+    // use fontconfig
     #ifndef NOTTF
-       {
-	FcStrList* dirs;
+      {
+        FcStrList* dirs;
         FcChar8 * fdir;
-	dirs = FcConfigGetFontDirs(NULL);
-	fdir = FcStrListNext(dirs);
+        dirs = FcConfigGetFontDirs(NULL);
+        fdir = FcStrListNext(dirs);
         while(fdir != NULL)
-	{
-            For_each_file((char *)fdir,Add_font);
-	    fdir = FcStrListNext(dirs);
-	}
+        {
+          For_each_file((char *)fdir,Add_font);
+          fdir = FcStrListNext(dirs);
+        }
 
         FcStrListDone(dirs);
-       }
+      }
     #endif
   #elif defined(__amigaos4__) || defined(__amigaos__)
     #ifndef NOTTF
