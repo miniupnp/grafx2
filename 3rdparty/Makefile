@@ -159,7 +159,11 @@ ifdef WIN32
 	echo "" >> ../doc/README-SDL_image.txt
 	echo "dependencies :" >> ../doc/README-SDL_image.txt
 	echo " - $(LIBPNG)" >> ../doc/README-SDL_image.txt
+ifneq ($(USE_JPEGTURBO), 1)
 	echo " - http://www.ijg.org/ JPEG lib $(JPEGVER)" >> ../doc/README-SDL_image.txt
+else
+	echo " - $(JPEGTURBO)" >> ../doc/README-SDL_image.txt
+endif
 	echo " - $(LIBTIFF)" >> ../doc/README-SDL_image.txt
 	echo "" >> ../doc/README-SDL_image.txt
 	echo "License :" >> ../doc/README-SDL_image.txt
@@ -262,7 +266,7 @@ ifdef WIN32
 	echo "$(JPEGTURBO)" > ../doc/README-jpeg.txt
 	echo "" >> ../doc/README-jpeg.txt
 	echo "License :" >> ../doc/README-jpeg.txt
-	cat $(JPEGTURBO)/LICENSE.md ../doc/README-jpeg.txt
+	cat $(JPEGTURBO)/LICENSE.md >> ../doc/README-jpeg.txt
 endif
 
 endif
