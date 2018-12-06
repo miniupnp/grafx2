@@ -19,17 +19,19 @@ addons:
     - liblua5.2-dev
     - nsis
     - dos2unix
+    - cmake
+    - yasm
 
 sudo: false
 
 env:
   - ''
-  - 'WIN32CROSS=1'
+  - 'WIN32CROSS=1 USE_JPEGTURBO=1'
 
 matrix:
   exclude:
     - os: osx
-      env: 'WIN32CROSS=1'
+      env: 'WIN32CROSS=1 USE_JPEGTURBO=1'
 
 compiler:
   - gcc
