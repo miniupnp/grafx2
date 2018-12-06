@@ -1,3 +1,6 @@
+# use IJG library or libjpeg-turbo
+USE_JPEGTURBO ?= 0
+
 SDLDEVEL = SDL-devel-1.2.15-mingw32.tar.gz
 SDLDEVELURL = https://www.libsdl.org/release/$(SDLDEVEL)
 SDLDEVELPATCH = SDL-1.2.15.patch
@@ -18,6 +21,10 @@ JPEGVER = 9c
 JPEGDIR = jpeg-$(JPEGVER)
 JPEGARCH = jpegsrc.v$(JPEGVER).tar.gz
 JPEGURL = http://www.ijg.org/files/$(JPEGARCH)
+JPEGTURBOVER = 2.0.1
+JPEGTURBO = libjpeg-turbo-$(JPEGTURBOVER)
+JPEGTURBOARCH = $(JPEGTURBO).tar.gz
+JPEGTURBOURL = https://sourceforge.net/projects/libjpeg-turbo/files/$(JPEGTURBOVER)/$(JPEGTURBOARCH)
 # http://www.simplesystems.org/libtiff/
 # https://gitlab.com/libtiff/libtiff
 LIBTIFF = tiff-4.0.10
@@ -65,6 +72,7 @@ CROSS_AR ?= $(shell which i686-w64-mingw32-ar || which mingw32-ar)
 CROSS_RANLIB ?= $(shell which i686-w64-mingw32-ranlib || which mingw32-ranlib)
 CROSS_STRIP ?= $(shell which i686-w64-mingw32-strip || which mingw32-strip)
 CROSS_LDFLAGS += -static-libgcc
+CROSS_WINDRES ?= $(shell which i686-w64-mingw32-windres || which mingw32-windres)
 CC = $(CROSS_CC)
 AR = $(CROSS_AR)
 RANLIB = $(CROSS_RANLIB)
@@ -85,7 +93,7 @@ clean_all:	clean clean_archives
 
 clean:
 	$(RM) -r usr/ $(LIBPNG) $(ZLIB) $(SDLIMAGE) $(JPEGDIR) $(LIBTIFF)
-	$(RM) -r $(SDLTTF) $(FREETYPE) SDL-1.2.15 $(LUA) $(RECOIL)
+	$(RM) -r $(SDLTTF) $(FREETYPE) SDL-1.2.15 $(LUA) $(RECOIL) $(JPEGTURBO)
 
 clean_archives:
 	$(RM) -r archives
@@ -210,6 +218,8 @@ $(FREETYPE)/.ok:	archives/$(FREETYPEARCH)
 	$(TAR) xzf $<
 	touch $@
 
+ifneq ($(USE_JPEGTURBO), 1)
+# use IJG JPEG
 $(PREFIX)/lib/libjpeg.a:	$(JPEGDIR)/.ok
 	cd $(JPEGDIR) && CC=$(CC) ./configure --prefix=$(PREFIX) --host=$(HOST)
 	cd $(JPEGDIR) && $(MAKE)
@@ -222,7 +232,46 @@ ifdef WIN32
 	$(CP) $(JPEGDIR)/README ../doc/README-jpeg.txt
 endif
 
+else
+#use libjpeg-turbo
+$(PREFIX)/lib/libjpeg.a:	$(JPEGTURBO)/.ok
+	$(MKDIR) $(JPEGTURBO)/build
+	echo "set(CMAKE_C_COMPILER $(CC))" > $(JPEGTURBO)/build/toolchain.cmake
+ifdef WIN32CROSS
+	echo "set(CMAKE_SYSTEM_NAME Windows)" >> $(JPEGTURBO)/build/toolchain.cmake
+	echo "set(CMAKE_SYSTEM_PROCESSOR X86)" >> $(JPEGTURBO)/build/toolchain.cmake
+	echo "set(CMAKE_RC_COMPILER $(CROSS_WINDRES))" >> $(JPEGTURBO)/build/toolchain.cmake
+	cd $(JPEGTURBO)/build && cmake -G"Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
+	  -DCMAKE_INSTALL_PREFIX=$(PREFIX) ..
+else
+ifdef WIN32
+	cd $(JPEGTURBO)/build && cmake -G"MSYS Makefiles" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
+	  -DCMAKE_INSTALL_PREFIX=$(PREFIX) ..
+else
+	cd $(JPEGTURBO)/build && cmake -G"Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
+	  -DCMAKE_INSTALL_PREFIX=$(PREFIX) ..
+endif
+endif
+	cd $(JPEGTURBO)/build && $(MAKE)
+	cd $(JPEGTURBO)/build && $(MAKE) install
+ifdef WIN32
+	$(MKDIR) ../bin && for f in $(PREFIX)/bin/libjpeg*.dll ; do \
+	    $(CP) $$f ../bin ; \
+	    $(STRIP) ../bin/`basename $$f` ; \
+	  done
+	echo "$(JPEGTURBO)" > ../doc/README-jpeg.txt
+	echo "" >> ../doc/README-jpeg.txt
+	echo "License :" >> ../doc/README-jpeg.txt
+	cat $(JPEGTURBO)/LICENSE.md ../doc/README-jpeg.txt
+endif
+
+endif
+
 $(JPEGDIR)/.ok:	archives/$(JPEGARCH)
+	$(TAR) xzf $<
+	touch $@
+
+$(JPEGTURBO)/.ok:	archives/$(JPEGTURBOARCH)
 	$(TAR) xzf $<
 	touch $@
 
@@ -333,3 +382,7 @@ archives/$(LUAARCH):
 archives/$(RECOILARCH):
 	@$(MKDIR) $(@D)
 	cd $(@D) && ( $(GETURL) $(RECOILURL) || $(GETURL) $(RECOILURLALT) )
+
+archives/$(JPEGTURBOARCH):
+	@$(MKDIR) $(@D)
+	cd $(@D) && $(GETURL) $(JPEGTURBOURL)
