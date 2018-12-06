@@ -103,7 +103,8 @@ Section "Grafx2" SecProgram
     File ..\bin\SDL.dll
     File ..\bin\SDL_ttf.dll
     File ..\bin\${FREETYPEDLL}
-    File ..\bin\${JPEGDLL}
+    ;File ..\bin\${JPEGDLL}
+    File ..\bin\libjpeg*.dll
     File ..\bin\${TIFFDLL}
   !endif
   File ..\bin\zlib1.dll
@@ -198,7 +199,8 @@ Section "un.SecProgram"
   Delete "$INSTDIR\bin\SDL_image.dll"
   Delete "$INSTDIR\bin\SDL.dll"
   Delete "$INSTDIR\bin\SDL_ttf.dll"
-  Delete "$INSTDIR\bin\${JPEGDLL}"
+  ;Delete "$INSTDIR\bin\${JPEGDLL}"
+  Delete "$INSTDIR\bin\libjpeg*.dll"
   Delete "$INSTDIR\bin\${FREETYPEDLL}"
   Delete "$INSTDIR\bin\zlib1.dll"
   Delete "$INSTDIR\bin\${PNGDLL}"
