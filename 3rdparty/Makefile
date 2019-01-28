@@ -435,8 +435,8 @@ $(PREFIX)/lib/libtiff.a:	$(LIBTIFF)/.ok
 	  --enable-silent-rules \
 	  --disable-cxx --disable-webp --disable-lzma --disable-zstd
 	cd $(LIBTIFF)/port && $(MAKE)
-	cd $(LIBTIFF)/libtiff && $(MAKE)
-	cd $(LIBTIFF)/libtiff && $(MAKE) install
+	cd $(LIBTIFF)/libtiff && $(MAKE) && $(MAKE) install
+	cd $(LIBTIFF) && $(MAKE) install-pkgconfigDATA
 ifdef WIN32
 	$(MKDIR) ../bin && for f in $(PREFIX)/bin/libtiff*.dll ; do \
 	    $(CP) $$f ../bin ; \
