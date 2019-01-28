@@ -157,6 +157,7 @@ endif
 
 HOST = $(shell $(CC) -dumpmachine)
 #HOST = i686-pc-mingw32
+BUILD = $(shell $(BUILD_CC) -dumpmachine)
 DATE = $(shell date -R)
 
 .PHONY:	all clean clean_archives clean_all download libs libpng \
@@ -391,7 +392,7 @@ $(PREFIX)/lib/libfreetype.a:	$(PREFIX)/lib/libpng.a
 
 $(PREFIX)/lib/libfreetype.a:	$(FREETYPE)/.ok
 	$(MKDIR) $(FREETYPE)/build
-	cd $(FREETYPE)/build && ../configure --build=$(shell $(BUILD_CC) -dumpmachine) --host=$(HOST) \
+	cd $(FREETYPE)/build && ../configure --build=$(BUILD) --host=$(HOST) \
 	  --prefix=$(PREFIX) --enable-freetype-config \
 	  PKG_CONFIG_LIBDIR=$(PREFIX)/lib/pkgconfig LDFLAGS="$(LDFLAGS)"
 	cd $(FREETYPE)/build && $(MAKE) && $(MAKE) install
@@ -408,7 +409,8 @@ endif
 	cat $(FREETYPE)/docs/GPLv2.TXT >> ../doc/README-freetype.txt
 
 $(PREFIX)/lib/libjpeg.a:	$(JPEGDIR)/.ok
-	cd $(JPEGDIR) && CC=$(CC) ./configure --prefix=$(PREFIX) --host=$(HOST)
+	cd $(JPEGDIR) && CC=$(CC) ./configure --prefix=$(PREFIX) \
+	  --host=$(HOST) --build=$(BUILD)
 	cd $(JPEGDIR) && $(MAKE)
 	cd $(JPEGDIR) && $(MAKE) install
 ifdef WIN32
@@ -452,9 +454,12 @@ endif
 $(PREFIX)/lib/libpng.a:	$(PREFIX)/lib/libz.a
 
 $(PREFIX)/lib/libpng.a:	$(LIBPNG)/.ok
-	cd $(LIBPNG) && CC="$(CC) $(LDFLAGS)" CPPFLAGS=-I$(PREFIX)/include LDFLAGS="-L$(PREFIX)/lib" ./configure --prefix=$(PREFIX) --host=$(HOST) --enable-silent-rules
-	cd $(LIBPNG) && $(MAKE)
-	cd $(LIBPNG) && $(MAKE) install
+	$(MKDIR) $(LIBPNG)/build
+	cd $(LIBPNG)/build && CC="$(CC) $(LDFLAGS)" CPPFLAGS=-I$(PREFIX)/include LDFLAGS="-L$(PREFIX)/lib" \
+	  ../configure --prefix=$(PREFIX) --host=$(HOST) --build=$(BUILD) \
+	  --enable-silent-rules
+	cd $(LIBPNG)/build && $(MAKE)
+	cd $(LIBPNG)/build && $(MAKE) install
 ifdef WIN32
 	$(MKDIR) ../bin && for f in $(PREFIX)/bin/libpng*.dll ; do \
 	    $(CP) $$f ../bin ; \
