@@ -43,7 +43,8 @@ SDLIMAGEPATCHES = SDL_image-1.2.12.XCF_infinite_loop.patch \
                   SDL_image-1.2.12-png_const_colorp.patch \
                   SDL_image-1.2.12-png_const_fix.patch \
                   SDL_image-1.2.12-configure_update.patch \
-                  SDL_image-1.2.12-configure_libpng.patch
+                  SDL_image-1.2.12-configure_libpng.patch \
+                  SDL_image-1.2.12-configure_findlib.patch
 SDLTTF=SDL_ttf-2.0.11
 SDLTTFARCH=$(SDLTTF).tar.gz
 SDLTTFURL=https://www.libsdl.org/projects/SDL_ttf/release/$(SDLTTFARCH)
