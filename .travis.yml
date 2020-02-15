@@ -29,8 +29,6 @@ matrix:
   include:
     - os: osx
     - os: linux
-      env: ''
-    - os: linux
       env: 'WIN32CROSS=1'
     - os: linux
       env: 'SWITCH=1'
