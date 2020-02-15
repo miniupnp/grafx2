@@ -15,6 +15,7 @@ addons:
     - liblua5.3-dev
     - nsis
     - dos2unix
+    - zip
 
 sudo: false
 
