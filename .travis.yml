@@ -18,6 +18,12 @@ addons:
 
 sudo: false
 
+arch:
+  - amd64
+  - ppc64le
+  - s390x
+  - arm64
+
 matrix:
   include:
     - os: osx
